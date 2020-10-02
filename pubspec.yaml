@@ -16,6 +16,7 @@ dependencies:
   dart_printf:
   path:
   flutter_imagenetwork:
+  rxdart:
 
 dev_dependencies:
   flutter_test:
