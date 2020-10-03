@@ -1,10 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:breakpoints/breakpoints.dart';
 import 'package:manga/dto/manga_item_dto.dart';
-import 'package:manga/pages/manga_detail_page.dart';
 import 'package:manga/shared/utils.dart';
-import 'package:manga/shared/widgets/net_image.dart';
+import 'package:manga/shared/widgets/manga_grid_view.dart';
 
 class UpdatePage extends StatefulWidget {
   static const routeName = '/UpdatePage';
@@ -14,7 +12,7 @@ class UpdatePage extends StatefulWidget {
 
 class _UpdatePageState extends State<UpdatePage>
     with AutomaticKeepAliveClientMixin {
-  List<MangaItemDto> list = [];
+  List<MangaItemDto> mangas = [];
   bool loading = true;
   int page = 1;
 
@@ -32,16 +30,9 @@ class _UpdatePageState extends State<UpdatePage>
     var r = await $document('update/$page/');
     var lis = $$(r, "#contList li");
     if (lis == null) {
-      list = List<MangaItemDto>();
+      mangas = List<MangaItemDto>();
     } else {
-      list = lis.map((it) {
-        var cover = $(it, '.cover');
-        return MangaItemDto(
-          name: cover.attributes['title'].trim(),
-          href: cover.attributes['href'].trim(),
-          img: $(cover, 'img').attributes['src'],
-        );
-      }).toList();
+      mangas = lis.map((li) => getMangaItem(li)).toList();
     }
 
     setState(() {
@@ -53,9 +44,7 @@ class _UpdatePageState extends State<UpdatePage>
   Widget build(BuildContext context) {
     super.build(context);
     if (loading) return Center(child: CircularProgressIndicator());
-    if (list.isEmpty) return Center(child: Text('没有数据'));
-
-    double width = MediaQuery.of(context).size.width;
+    if (mangas.isEmpty) return Center(child: Text('没有数据'));
     return Scaffold(
       appBar: AppBar(
         title: Text('最新更新'),
@@ -63,45 +52,7 @@ class _UpdatePageState extends State<UpdatePage>
       body: CupertinoScrollbar(
         child: ListView(
           children: [
-            GridView.count(
-              primary: false,
-              shrinkWrap: true,
-              crossAxisCount: width.isXs
-                  ? 2
-                  : width.isSm
-                      ? 3
-                      : width.isMd
-                          ? 4
-                          : width.isLg
-                              ? 5
-                              : width.isXl
-                                  ? 6
-                                  : 10,
-              mainAxisSpacing: 2.0,
-              crossAxisSpacing: 2.0,
-              childAspectRatio: 0.8,
-              children: list.map((it) {
-                return InkWell(
-                  onTap: () {
-                    Navigator.of(context)
-                        .push(MaterialPageRoute(builder: (context) {
-                      return MangaDetailPage(manga: it);
-                    }));
-                  },
-                  child: Card(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Expanded(child: netImage(it.img)),
-                        ListTile(
-                          title: Text(it.name),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
+            MangaGridView(mangas: mangas),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

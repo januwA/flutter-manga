@@ -2,11 +2,10 @@ import 'package:dart_printf/dart_printf.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:manga/dto/manga_item_dto.dart';
-import 'package:manga/pages/manga_detail_page.dart';
 import 'package:manga/pages/manga_search_page.dart';
 import 'package:manga/shared/http.dart';
 import 'package:manga/shared/utils.dart';
-import 'package:manga/shared/widgets/net_image.dart';
+import 'package:manga/shared/widgets/manga_list_view.dart';
 import 'package:html/dom.dart' as dom;
 
 class HomePage extends StatefulWidget {
@@ -36,13 +35,7 @@ class _HomePageState extends State<HomePage>
     //                   热门最新更新
     //============================================================//
     $$(_doc, "#updateWrap ul")?.map((ul) => $$(ul, 'li'))?.forEach((lis) {
-      lis.forEach((li) {
-        var href = $(li, 'p a').attributes['href'];
-        var mangaName = $(li, 'p a').text.trim();
-        var img = $(li, 'img').attributes['src'];
-        // printf("%s\n%s\n%s", [href, mangaName, img]);
-        _latestMangas.add(MangaItemDto(href: href, name: mangaName, img: img));
-      });
+      lis.forEach((li) => _latestMangas.add(getMangaItem(li)));
     });
 
     setState(() {
@@ -99,7 +92,6 @@ class _HomePageState extends State<HomePage>
                     select: '#finishCont ul',
                     tabs: _dtabs,
                   ),
-
                   MangaSection(
                     doc: _doc,
                     title: '最新上架',
@@ -117,45 +109,13 @@ class _HomePageState extends State<HomePage>
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             '热门漫画最新更新',
             style: Theme.of(context).textTheme.headline6,
           ),
           SizedBox(height: 10),
-          SizedBox(
-            height: 300,
-            child: ListView.builder(
-              itemCount: _latestMangas.length,
-              scrollDirection: Axis.horizontal,
-              itemBuilder: (context, index) {
-                var it = _latestMangas[index];
-                return SizedBox(
-                  width: 200,
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.of(context)
-                          .push(MaterialPageRoute(builder: (context) {
-                        return MangaDetailPage(manga: it);
-                      }));
-                    },
-                    child: Card(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Expanded(child: netImage(it.img)),
-                          ListTile(
-                            title: Text(it.name),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
+          MangaListView(mangas: _latestMangas),
         ],
       ),
     );
@@ -202,16 +162,8 @@ class _MangaSectionState extends State<MangaSection>
     });
 
     // init view data
-    _list = $$(widget.doc, widget.select)
-        .map((ul) => $$(ul, "li").map((li) {
-              var cover = $(li, '.cover');
-              return MangaItemDto(
-                name: cover.attributes['title'].trim(),
-                href: cover.attributes['href'].trim(),
-                img: $(cover, 'img').attributes['src'],
-              );
-            }).toList())
-        .toList();
+    _list =
+        $$(widget.doc, widget.select).map((ul) => getMangaItems(ul)).toList();
   }
 
   @override
@@ -239,36 +191,7 @@ class _MangaSectionState extends State<MangaSection>
             labelColor: Theme.of(context).primaryColor,
           ),
           SizedBox(height: 10),
-          SizedBox(
-            height: 300,
-            child: ListView.builder(
-              itemCount: _list[index].length,
-              scrollDirection: Axis.horizontal,
-              itemBuilder: (context, i) {
-                var it = _list[index][i];
-                return SizedBox(
-                  width: 200,
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.of(context)
-                          .push(MaterialPageRoute(builder: (context) {
-                        return MangaDetailPage(manga: it);
-                      }));
-                    },
-                    child: Card(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Expanded(child: netImage(it.img)),
-                          ListTile(title: Text(it.name)),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
+          MangaListView(mangas: _list[index]),
         ],
       ),
     );

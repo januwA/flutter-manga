@@ -24,7 +24,6 @@ class _DashPageState extends State<DashPage> {
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
-        fixedColor: Colors.purple,
         onTap: (int index) {
           setState(() {
             _currentIndex = index;

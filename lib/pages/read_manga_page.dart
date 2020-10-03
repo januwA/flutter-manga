@@ -60,9 +60,7 @@ class RreaMmangPpageState extends State<ReadMangaPage> {
           ? Center(child: CircularProgressIndicator())
           : ListView.builder(
               itemCount: images.length,
-              itemBuilder: (context, index) {
-                return netImage(images[index]);
-              },
+              itemBuilder: (context, index) => netImage(images[index]),
             ),
     );
   }
