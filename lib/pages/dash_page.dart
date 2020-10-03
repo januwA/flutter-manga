@@ -12,6 +12,12 @@ class DashPage extends StatefulWidget {
 class _DashPageState extends State<DashPage> {
   int _currentIndex = 0;
   final PageController _controller = PageController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
