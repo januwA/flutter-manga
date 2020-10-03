@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:manga/dto/manga_search_item_dto.dart';
 import 'package:breakpoints/breakpoints.dart';
+import 'package:manga/dto/manga_item_dto.dart';
 import 'package:manga/pages/manga_detail_page.dart';
 import 'package:manga/shared/utils.dart';
 import 'package:manga/shared/widgets/net_image.dart';
@@ -85,7 +85,7 @@ class _UpdatePageState extends State<UpdatePage>
                   onTap: () {
                     Navigator.of(context)
                         .push(MaterialPageRoute(builder: (context) {
-                      return MangaDetailPage(latestMangaDto: it);
+                      return MangaDetailPage(manga: it);
                     }));
                   },
                   child: Card(

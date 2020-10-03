@@ -9,4 +9,3 @@ List<dom.Element> $$(parent /*Element|Document*/, String select) =>
 
 Future<dom.Document> $document(String url) =>
     http.get(url).then((r) => html.parse(r.body));
-

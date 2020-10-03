@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:manga/dto/latest_manga_dto.dart';
+import 'package:manga/dto/manga_item_dto.dart';
 import 'package:manga/dto/manga_detail_dto.dart';
 import 'package:manga/pages/read_manga_page.dart';
 import 'package:manga/shared/utils.dart';
@@ -7,9 +7,9 @@ import 'package:manga/shared/widgets/net_image.dart';
 
 class MangaDetailPage extends StatefulWidget {
   static const routeName = '/MangaDetailPage';
-  final LatestMangaDto latestMangaDto;
+  final MangaItemDto manga;
 
-  const MangaDetailPage({Key key, this.latestMangaDto}) : super(key: key);
+  const MangaDetailPage({Key key, this.manga}) : super(key: key);
 
   @override
   _MangaDetailPageState createState() => _MangaDetailPageState();
@@ -25,7 +25,7 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
   }
 
   void _init() async {
-    var r = await $document(widget.latestMangaDto.href);
+    var r = await $document(widget.manga.href);
     var detail = $(r, '#intro-cut p').text.trim();
     var divs = $$(r, ".comic-chapters");
 
@@ -53,13 +53,13 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.latestMangaDto.name),
+        title: Text(widget.manga.name),
       ),
       body: loading
           ? Center(child: CircularProgressIndicator())
           : ListView(
               children: [
-                netImage(widget.latestMangaDto.img),
+                netImage(widget.manga.img),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text(mangaDetailDto.detail),

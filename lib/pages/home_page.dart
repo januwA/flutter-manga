@@ -1,12 +1,13 @@
+import 'package:dart_printf/dart_printf.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:manga/dto/latest_manga_dto.dart';
-import 'package:manga/dto/manga_search_item_dto.dart';
+import 'package:manga/dto/manga_item_dto.dart';
 import 'package:manga/pages/manga_detail_page.dart';
 import 'package:manga/pages/manga_search_page.dart';
 import 'package:manga/shared/http.dart';
 import 'package:manga/shared/utils.dart';
 import 'package:manga/shared/widgets/net_image.dart';
+import 'package:html/dom.dart' as dom;
 
 class HomePage extends StatefulWidget {
   @override
@@ -14,65 +15,36 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage>
-    with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
-  List<LatestMangaDto> latestMangas = [];
+    with AutomaticKeepAliveClientMixin, TickerProviderStateMixin {
+  List<MangaItemDto> _latestMangas = [];
   bool loading = true;
 
-  /// ================================================= 热门漫画
-  final List<Tab> _hotTabs = <Tab>[
-    Tab(text: '热门连载'),
-    Tab(text: '经典完结'),
-    Tab(text: '最新上架'),
-    Tab(text: '热门古风'),
-  ];
-  List<List<MangaItemDto>> _hotMangaList = [];
-  TabController _tabController;
-  int _hotIndex = 0;
-  /// =================================================
+  dom.Document _doc;
+
+  List<String> _dtabs = ['少女漫画', '少年漫画', '青年漫画'];
 
   @override
   void initState() {
     super.initState();
     init();
-    _tabController = TabController(vsync: this, length: _hotTabs.length);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   void init() async {
-    var r = await $document(http.config.baseURL);
+    _doc = await $document(http.config.baseURL);
 
-    // ============================================================ 热门最新更新
-    var updateWrap = $(r, "#updateWrap");
-    var uls = $$(updateWrap, "ul");
-    uls.map((ul) => $$(ul, 'li')).forEach((lis) {
+    //============================================================//
+    //                   热门最新更新
+    //============================================================//
+    $$(_doc, "#updateWrap ul")?.map((ul) => $$(ul, 'li'))?.forEach((lis) {
       lis.forEach((li) {
         var href = $(li, 'p a').attributes['href'];
         var mangaName = $(li, 'p a').text.trim();
         var img = $(li, 'img').attributes['src'];
         // printf("%s\n%s\n%s", [href, mangaName, img]);
-        latestMangas.add(LatestMangaDto(href: href, name: mangaName, img: img));
+        _latestMangas.add(MangaItemDto(href: href, name: mangaName, img: img));
       });
     });
-    // ============================================================
 
-    // ============================================================ 热门漫画
-    uls = $$(r, '#cmt-cont ul');
-    _hotMangaList = uls.map((ul) {
-      return $$(ul, "li").map((li) {
-        var cover = $(li, '.cover');
-        return MangaItemDto(
-          name: cover.attributes['title'].trim(),
-          href: cover.attributes['href'].trim(),
-          img: $(cover, 'img').attributes['src'],
-        );
-      }).toList();
-    }).toList();
-    // ============================================================
     setState(() {
       loading = false;
     });
@@ -109,8 +81,31 @@ class _HomePageState extends State<HomePage>
               child: ListView(
                 children: [
                   _buildLatestManga(),
-                  SizedBox(height: 10),
-                  _buildHotManga(),
+                  MangaSection(
+                    doc: _doc,
+                    title: '热门漫画',
+                    select: '#cmt-cont ul',
+                    tabs: const ['热门连载', '经典完结', '最新上架', '热门古风'],
+                  ),
+                  MangaSection(
+                    doc: _doc,
+                    title: '热门连载',
+                    select: '#serialCont ul',
+                    tabs: _dtabs,
+                  ),
+                  MangaSection(
+                    doc: _doc,
+                    title: '经典完结',
+                    select: '#finishCont ul',
+                    tabs: _dtabs,
+                  ),
+
+                  MangaSection(
+                    doc: _doc,
+                    title: '最新上架',
+                    select: '#latestCont ul',
+                    tabs: _dtabs,
+                  ),
                 ],
               ),
             ),
@@ -132,17 +127,17 @@ class _HomePageState extends State<HomePage>
           SizedBox(
             height: 300,
             child: ListView.builder(
-              itemCount: latestMangas.length,
+              itemCount: _latestMangas.length,
               scrollDirection: Axis.horizontal,
               itemBuilder: (context, index) {
-                var it = latestMangas[index];
+                var it = _latestMangas[index];
                 return SizedBox(
                   width: 200,
                   child: InkWell(
                     onTap: () {
                       Navigator.of(context)
                           .push(MaterialPageRoute(builder: (context) {
-                        return MangaDetailPage(latestMangaDto: it);
+                        return MangaDetailPage(manga: it);
                       }));
                     },
                     child: Card(
@@ -165,72 +160,116 @@ class _HomePageState extends State<HomePage>
       ),
     );
   }
+}
 
-  /// 热门漫画
-  Widget _buildHotManga() {
-    return DefaultTabController(
-      length: _hotTabs.length,
-      child: Builder(
-        builder: (BuildContext context) {
-          final TabController tabController = DefaultTabController.of(context);
-          tabController.addListener(() {
-            if (!tabController.indexIsChanging) {
-              setState(() {
-                _hotIndex = tabController.index;
-              });
-              // 您的代码在这里。
-              // 要获取当前标签的索引，请使用tabController.index
-            }
-          });
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Text(
-                '热门漫画',
-                style: Theme.of(context).textTheme.headline6,
-              ),
-              SizedBox(height: 10),
-              TabBar(
-                tabs: _hotTabs,
-                isScrollable: true,
-                labelColor: Theme.of(context).primaryColor,
-              ),
-              SizedBox(height: 10),
-              SizedBox(
-                height: 300,
-                child: ListView.builder(
-                  itemCount: _hotMangaList[_hotIndex].length,
-                  scrollDirection: Axis.horizontal,
-                  itemBuilder: (context, index) {
-                    var it = _hotMangaList[_hotIndex][index];
-                    return SizedBox(
-                      width: 200,
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.of(context)
-                              .push(MaterialPageRoute(builder: (context) {
-                            return MangaDetailPage(latestMangaDto: it);
-                          }));
-                        },
-                        child: Card(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Expanded(child: netImage(it.img)),
-                              ListTile(
-                                title: Text(it.name),
-                              ),
-                            ],
-                          ),
-                        ),
+class MangaSection extends StatefulWidget {
+  final List<String> tabs;
+  final String title;
+  final dom.Document doc;
+  final String select;
+
+  const MangaSection({
+    Key key,
+    @required this.tabs,
+    @required this.title,
+    @required this.doc,
+    @required this.select,
+  }) : super(key: key);
+
+  @override
+  _MangaSectionState createState() => _MangaSectionState();
+}
+
+class _MangaSectionState extends State<MangaSection>
+    with SingleTickerProviderStateMixin {
+  List<List<MangaItemDto>> _list = [];
+  TabController _tc;
+  int index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // init tab controller
+    _tc = TabController(vsync: this, length: widget.tabs.length);
+    _tc.addListener(() {
+      if (!_tc.indexIsChanging) {
+        printf('index change: %d', [_tc.index]);
+        setState(() {
+          index = _tc.index;
+        });
+      }
+    });
+
+    // init view data
+    _list = $$(widget.doc, widget.select)
+        .map((ul) => $$(ul, "li").map((li) {
+              var cover = $(li, '.cover');
+              return MangaItemDto(
+                name: cover.attributes['title'].trim(),
+                href: cover.attributes['href'].trim(),
+                img: $(cover, 'img').attributes['src'],
+              );
+            }).toList())
+        .toList();
+  }
+
+  @override
+  void dispose() {
+    _tc?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Text(
+            widget.title,
+            style: Theme.of(context).textTheme.headline6,
+          ),
+          SizedBox(height: 10),
+          TabBar(
+            controller: _tc,
+            tabs: widget.tabs.map((e) => Tab(text: e)).toList(),
+            isScrollable: true,
+            labelColor: Theme.of(context).primaryColor,
+          ),
+          SizedBox(height: 10),
+          SizedBox(
+            height: 300,
+            child: ListView.builder(
+              itemCount: _list[index].length,
+              scrollDirection: Axis.horizontal,
+              itemBuilder: (context, i) {
+                var it = _list[index][i];
+                return SizedBox(
+                  width: 200,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.of(context)
+                          .push(MaterialPageRoute(builder: (context) {
+                        return MangaDetailPage(manga: it);
+                      }));
+                    },
+                    child: Card(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Expanded(child: netImage(it.img)),
+                          ListTile(title: Text(it.name)),
+                        ],
                       ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          );
-        },
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
