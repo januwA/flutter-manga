@@ -66,7 +66,7 @@ class ListResults extends StatefulWidget {
 }
 
 class _ListResultsState extends State<ListResults> {
-  List<MangaSearchItemDto> _list = List<MangaSearchItemDto>();
+  List<MangaItemDto> _list = List<MangaItemDto>();
   bool loading = true;
   int page = 1;
 
@@ -84,11 +84,11 @@ class _ListResultsState extends State<ListResults> {
     var r = await $document('search/?keywords=${widget.query}&page=$page');
     var lis = $$(r, "#contList li");
     if (lis == null) {
-      _list = List<MangaSearchItemDto>();
+      _list = List<MangaItemDto>();
     } else {
       _list = lis.map((it) {
         var cover = $(it, '.cover');
-        return MangaSearchItemDto(
+        return MangaItemDto(
           name: cover.attributes['title'].trim(),
           href: cover.attributes['href'].trim(),
           img: $(cover, 'img').attributes['src'],
@@ -111,7 +111,7 @@ class _ListResultsState extends State<ListResults> {
   }
 
   /// 显示用户搜索结果列表
-  Widget _displayResultList(List<MangaSearchItemDto> list) {
+  Widget _displayResultList(List<MangaItemDto> list) {
     double width = MediaQuery.of(context).size.width;
     return ListView(
       key: PageStorageKey<String>('search_result'),
