@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:manga/dto/manga_item_dto.dart';
 import 'package:manga/dto/manga_detail_dto.dart';
@@ -57,41 +58,43 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
       ),
       body: loading
           ? Center(child: CircularProgressIndicator())
-          : ListView(
-              children: [
-                netImage(widget.manga.img),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(mangaDetailDto.detail),
-                ),
-                for (var it in mangaDetailDto.comicChapterss)
+          : CupertinoScrollbar(
+              child: ListView(
+                children: [
+                  netImage(widget.manga.img),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          it.title,
-                          style: Theme.of(context).textTheme.subtitle1,
-                        ),
-                        Wrap(
-                          spacing: 8.0,
-                          children: it.chapterList.map((e) {
-                            return RaisedButton(
-                              onPressed: () {
-                                Navigator.of(context)
-                                    .push(MaterialPageRoute(builder: (context) {
-                                  return ReadMangaPage(href: e.href);
-                                }));
-                              },
-                              child: Text(e.name),
-                            );
-                          }).toList(),
-                        ),
-                      ],
-                    ),
+                    child: Text(mangaDetailDto.detail),
                   ),
-              ],
+                  for (var it in mangaDetailDto.comicChapterss)
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            it.title,
+                            style: Theme.of(context).textTheme.subtitle1,
+                          ),
+                          Wrap(
+                            spacing: 8.0,
+                            children: it.chapterList.map((e) {
+                              return RaisedButton(
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                      MaterialPageRoute(builder: (context) {
+                                    return ReadMangaPage(href: e.href);
+                                  }));
+                                },
+                                child: Text(e.name),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
             ),
     );
   }

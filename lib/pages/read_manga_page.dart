@@ -17,6 +17,18 @@ class RreaMmangPpageState extends State<ReadMangaPage> {
   List<String> images = [];
   String title = '';
 
+// 缩放
+  double _scale = 1.0;
+  double _baseScale = 0;
+  double get scale {
+    if (_scale < 1.0) _scale = 1.0;
+    return _scale;
+  }
+
+// 平移
+  Offset _pos = Offset(0, 0);
+  Offset _basePos = Offset(0, 0);
+
   @override
   void initState() {
     super.initState();
@@ -52,16 +64,53 @@ class RreaMmangPpageState extends State<ReadMangaPage> {
     });
   }
 
+  void _onScaleStart(ScaleStartDetails d) {
+    _baseScale = _scale;
+    _basePos = d.localFocalPoint - _pos;
+  }
+
+  void _onScaleUpdate(ScaleUpdateDetails d) {
+    setState(() {
+      // 再放大时，避免平移
+      if (_baseScale * d.scale == _scale) {
+        _pos = d.localFocalPoint - _basePos;
+      }
+      _scale = _baseScale * d.scale;
+    });
+  }
+
+  /// 双击还原
+  void _onDoubleTap() {
+    setState(() {
+      _scale = 1.0;
+      _pos = Offset(0, 0);
+      _basePos = Offset(0, 0);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: laoding
-          ? Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: images.length,
-              itemBuilder: (context, index) => netImage(images[index]),
-            ),
+    return GestureDetector(
+      onDoubleTap: _onDoubleTap,
+      child: Scaffold(
+        appBar: AppBar(title: Text(title)),
+        body: laoding
+            ? Center(child: CircularProgressIndicator())
+            : GestureDetector(
+                onScaleStart: _onScaleStart,
+                onScaleUpdate: _onScaleUpdate,
+                child: Transform(
+                  transform: Matrix4.identity()
+                    ..scale(scale, scale)
+                    ..translate(_pos.dx, _pos.dy),
+                  alignment: Alignment.center,
+                  child: ListView.builder(
+                    itemCount: images.length,
+                    itemBuilder: (context, index) => netImage(images[index]),
+                  ),
+                ),
+              ),
+      ),
     );
   }
 }
