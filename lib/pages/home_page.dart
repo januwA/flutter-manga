@@ -2,6 +2,7 @@ import 'package:dart_printf/dart_printf.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:manga/dto/manga_item_dto.dart';
+import 'package:manga/pages/manga_historys_page.dart';
 import 'package:manga/pages/manga_search_page.dart';
 import 'package:manga/shared/http.dart';
 import 'package:manga/shared/utils.dart';
@@ -67,6 +68,20 @@ class _HomePageState extends State<HomePage>
             },
           ),
         ],
+      ),
+      drawer: Drawer(
+        child: ListView(children: [
+          ListTile(
+            title: Text('历史记录'),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) {
+                  return MangaHistorysPage();
+                }),
+              );
+            },
+          ),
+        ]),
       ),
       body: loading
           ? Center(child: CircularProgressIndicator())

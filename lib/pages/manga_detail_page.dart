@@ -1,10 +1,14 @@
+import 'package:dart_printf/dart_printf.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:manga/dto/manga_item_dto.dart';
 import 'package:manga/dto/manga_detail_dto.dart';
+import 'package:manga/main.dart';
 import 'package:manga/pages/read_manga_page.dart';
+import 'package:manga/service/manga_historys.dart';
 import 'package:manga/shared/utils.dart';
 import 'package:manga/shared/widgets/net_image.dart';
+import 'package:path/path.dart' as path;
 
 class MangaDetailPage extends StatefulWidget {
   static const routeName = '/MangaDetailPage';
@@ -17,15 +21,18 @@ class MangaDetailPage extends StatefulWidget {
 }
 
 class _MangaDetailPageState extends State<MangaDetailPage> {
+  final hsService = getIt<MangaHistorysService>();
   MangaDetailDto mangaDetailDto;
   bool loading = true;
   @override
   void initState() {
     super.initState();
     _init();
+    _save();
   }
 
   void _init() async {
+    printf('href: %s', [widget.manga.href]);
     var r = await $document(widget.manga.href);
     var detail = $(r, '#intro-cut p').text.trim();
     var divs = $$(r, ".comic-chapters");
@@ -45,9 +52,18 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
       detail: detail,
       comicChapterss: comicChapterss,
     );
-    setState(() {
-      loading = false;
-    });
+    if (mounted) {
+      setState(() {
+        loading = false;
+      });
+    }
+  }
+
+  void _save() {
+    String mangaName = path.basename(widget.manga.href);
+    if (mangaName.isNotEmpty) {
+      hsService.insert(mangaName);
+    }
   }
 
   @override

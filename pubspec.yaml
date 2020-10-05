@@ -17,6 +17,9 @@ dependencies:
   path:
   flutter_imagenetwork:
   rxdart:
+  sqflite:
+  sqflite_common_ffi:
+  get_it:
 
 dev_dependencies:
   flutter_test:
