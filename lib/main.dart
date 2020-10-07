@@ -5,6 +5,7 @@ import 'package:manga/service/manga_historys.dart';
 
 GetIt getIt = GetIt.instance;
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   getIt..registerSingleton<MangaHistorysService>(MangaHistorysService());
   runApp(MyApp());
 }
